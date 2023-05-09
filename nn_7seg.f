@@ -1,4 +1,3 @@
-
 10 CONSTANT #NEURONS
 7 CONSTANT #INPUTS
 
@@ -74,9 +73,47 @@ int index
 
 default_k
 
-: test
-  set-x calc-y print-y
+
+: SHOW-Y-LABELS
+  #NEURONS 0 DO
+    I LABEL.SHOW
+    500 i 70 * 100 +  200 50 I Label.rect
+    Y[] i -th @ I label.int
+  LOOP
 ;
 
-digit5 test
+: test
+  set-x calc-y print-y
+  SHOW-Y-LABELS
+;
 
+: b0 digit0 test ;
+: b1 digit1 test ;
+: b2 digit2 test ;
+: b3 digit3 test ;
+: b4 digit4 test ;
+: b5 digit5 test ;
+: b6 digit6 test ;
+: b7 digit7 test ;
+: b8 digit8 test ;
+: b9 digit9 test ;
+
+: create-buttons
+  10 0 do
+    i button.show
+    70 i * 50 + 900 50 30 i button.rect
+  loop
+;
+create-buttons
+"0" 0 button.text "b0" 0 button.action
+"1" 1 button.text "b1" 1 button.action
+"2" 2 button.text "b2" 2 button.action
+"3" 3 button.text "b3" 3 button.action
+"4" 4 button.text "b4" 4 button.action
+"5" 5 button.text "b5" 5 button.action
+"6" 6 button.text "b6" 6 button.action
+"7" 7 button.text "b7" 7 button.action
+"8" 8 button.text "b8" 8 button.action
+"9" 9 button.text "b9" 9 button.action
+
+digit5 test
