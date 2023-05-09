@@ -74,7 +74,9 @@ int index
 
 default_k
 
-digit2 set-x
-CALC-Y
-print-y
+: test
+  set-x calc-y print-y
+;
+
+digit5 test
 
