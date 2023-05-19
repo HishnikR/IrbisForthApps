@@ -11,8 +11,8 @@ float vy
 float vcos
 float vsin
 
-proc rotate // f: x, y, phi -- f: x, y
-  fdup
+proc rotate // f: x, y  -- f: x, y
+  phi f@ fdup
   fcos vcos f!
   fsin vsin f!
   vy f!
@@ -46,9 +46,9 @@ proc redraw-line
   1 TRACKBAR.GETPOSITION s>f
   9.0 f/ 5.0 f- d f!
   1 series.clear
-  -10.0 0.0 phi f@ rotate move
+  -10.0 0.0 rotate move
   1 series.fxy
-  10.0 0.0 phi f@ rotate move
+  10.0 0.0 rotate move
   1 series.fxy
 endproc
 
