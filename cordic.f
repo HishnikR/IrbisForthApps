@@ -56,17 +56,29 @@ endproc
 int tempx
 int tempy
 
+proc >> // x, n
+ dup if
+   0 do
+     2 /
+   loop
+ else
+   drop
+ then
+
+endproc
+
+
 proc CORDIC-STEP
   x to tempx
   y to tempy
   ph phase < if
     ph atan[] step -th @ + to ph
-    x tempy step rshift - to x
-    y tempx step rshift + to y
+    x tempy step >> - to x
+    y tempx step >> + to y
   else
     ph atan[] step -th @ - to ph
-    x tempy step rshift + to x
-    y tempx step rshift - to y
+    x tempy step >> + to x
+    y tempx step >> - to y
   then
   step 1 + to step
 endproc
@@ -85,7 +97,7 @@ proc test-steps
   "testing CORDIC steps" print
   0 series.clear
   1 series.clear
-  30 deg->phase to phase
+  45 deg->phase to phase
   0 to ph
   0 to step
   2147483648 to x
@@ -103,8 +115,9 @@ proc test
   1 series.clear
   90 0 do
     i deg->phase to phase cordic ph phase->deg .
-    i s>f x s>f 2147483648.0 f/ 0 series.fxy
-    i s>f y s>f 2147483648.0 f/ 1 series.fxy
+    i x  0 series.xy
+    i y  1 series.xy
+    x dup * y dup * + abs .
   loop
 endproc
 
@@ -117,5 +130,6 @@ endproc
 0x003FFF 1 SERIES.COLOR
 3 1 SERIES.LINEWIDTH
 
-// test
+test
+
 
