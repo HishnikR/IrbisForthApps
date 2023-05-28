@@ -138,6 +138,8 @@ FLOAT SIGMA 10.0 SIGMA F!
 INT INDEX
 FLOAT Y
 FLOAT X
+FLOAT SIGMAX 10.0 SIGMAX F!
+FLOAT SIGMAY 10.0 SIGMAY F!
 
 PROC GAUSS2D // INDEX, F: X, Y --> F: P
   TO INDEX
@@ -147,7 +149,7 @@ PROC GAUSS2D // INDEX, F: X, Y --> F: P
   1.0
   DATAX[] INDEX -TH F@ X F@ F- FDUP F*
   DATAY[] INDEX -TH F@ Y F@ F- FDUP F* F+
-  SIGMA F@ FDUP F* F/ FEXP
+  SIGMAX F@ SIGMAY F@ F* F/ FEXP
   F/
 ENDPROC
 
@@ -156,7 +158,7 @@ ENDPROC
 proc xygauss
   YSIZE 0 do
     XSIZE 0 do
-      xy[] nxy i s>f j s>f sigma f@ fgauss[]2d
+      xy[] nxy i s>f j s>f sigmax f@ sigmay f@ fgauss[]2d
       z[] j XSIZE * i + -th f!
     loop
   loop
@@ -256,26 +258,38 @@ proc runall
   loop
 endproc
 
+8 constant #Y
 
 proc explorexy
 
   10.0 s0 F!
-  2.0 sstep F!
+  5.0 sstep F!
+
+  0 label.show
 
   0 chart.show
-  0 0 CHART.ADDSERIES
-    0 SERIES.CLEAR
-  3 0 SERIES.LINEWIDTH
   600 XSIZE + 100 1000 1000 0 chart.RECT
-  0.0 0.0 0 series.fxy
+  0 50 1000 800 0 chart.RECT
 
-  25 0 do
-    i s>f sstep f@ f* s0 F@ f+ sigma f!
-    xygauss
-    sigma f@
-    COUNTMAX NMAX s>f
-    0 SERIES.FXY
+  #Y 0 do
+    i 0 CHART.ADDSERIES
+      i SERIES.CLEAR
+    3 i SERIES.LINEWIDTH
+    i 31 * i series.color
   loop
 
+  #Y 0 do
+    i s>f sstep f@ f* s0 F@ f+ sigmay f!
+    8 0 do
+      i 0 label.int
+      10 0 do $ loop
+      i s>f sstep f@ f* s0 F@ f+ sigmax f!
+      xygauss
+      sigmax f@
+      COUNTMAX NMAX s>f
+      j SERIES.FXY
+    loop
+    i .
+  loop
 endproc
 
