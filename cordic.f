@@ -86,7 +86,7 @@ endproc
 proc cordic
   0 to ph
   0 to step
-  2147483648 to x
+  2147483647 to x
   0 to y
   32 0 do
     cordic-step
@@ -94,7 +94,7 @@ proc cordic
 endproc
 
 proc test-steps
-  "testing CORDIC steps" print
+  " testing CORDIC steps" print
   0 series.clear
   1 series.clear
   45 deg->phase to phase
@@ -103,7 +103,7 @@ proc test-steps
   2147483648 to x
   0 to y
   32 0 do
-    cordic-step x .
+    cordic-step ph .
     i x  0 series.xy
     i y  1 series.xy
   loop
