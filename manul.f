@@ -1,0 +1,317 @@
+
+65536 CONSTANT MAXCODE
+16384 CONSTANT MAXDATA
+
+CREATE CODE[] MAXCODE ALLOT
+CREATE DATA[] MAXDATA CELLS ALLOT
+int CODE^
+int DATA^
+
+: ZC,
+  CODE[] CODE^ + C!
+  CODE^ 1 + TO CODE^
+;
+
+0 CONSTANT cmdNOP
+
+: CMD CREATE , DOES> @ ZC, ;
+: CMD2 CREATE , DOES> cmdNOP ZC, @ ZC, ;
+
+
+100 CONSTANT FLOW-SIZE
+CREATE CF-ADDR[] FLOW-SIZE CELLS ALLOT
+CREATE CF-ID[] FLOW-SIZE CELLS ALLOT
+int CFDEPTH
+
+: PUSH-CF // ID --
+  CF-ID[] CFDEPTH -TH !
+  CODE^ CF-ADDR[] CFDEPTH -TH !
+  CFDEPTH 1 + TO CFDEPTH
+;
+
+1 CONSTANT cfIF
+2 CONSTANT cfBEGIN
+3 CONSTANT cfDO
+
+: LIT32! // N --
+  DUP 0xFF AND ZC,
+  DUP 256 / 0xFF AND ZC,
+  DUP 65536 / 0xFF AND ZC,
+  256 / 65536 / 0xFF AND ZC,
+;
+
+: MANUL-LIT // N --
+  use 0 to <number>
+  40 ZC, // code for LIT32
+  LIT32!
+  use MANUL-LIT TO <number>
+;
+
+: TEST-LIT CODE^ . ZC, ;
+
+
+VOCABULARY MANUL
+
+: MAIN:
+  use MANUL-LIT TO <number>
+
+  CODE^
+  0 TO CODE^
+  8 ZC, // JMP32
+  DUP LIT32!
+  TO CODE^
+  MANUL
+;
+
+: START:
+  0 TO CODE^
+  0 ZC, 0 ZC, 0 ZC, 0 ZC, 23 ZC,
+  0x11 TO DATA^
+  use MANUL-LIT TO <number>
+  MANUL
+;
+
+: END
+  0 TO <number>
+  FORTH
+;
+
+// : [IF] [COMPILE] IF ; IMMEDIATE
+// : [ELSE] [COMPILE] ELSE ; IMMEDIATE
+// : [THEN] [COMPILE] THEN ; IMMEDIATE
+
+
+
+MANUL DEFINITIONS
+
+0  CMD NOP
+
+17 CMD NOT
+16 CMD @
+18 CMD NEGATE
+19 CMD SHL
+20 CMD SHR
+21 CMD SHRA
+22 CMD INPORT
+3 CMD SWAP
+32 CMD DUP
+33 CMD OVER
+// 10 CMD R>
+34 CMD DEPTH
+35 CMD RDEPTH
+64 CMD +
+65 CMD -
+66 CMD AND
+67 CMD OR
+68 CMD XOR
+69 CMD =
+70 CMD <
+71 CMD >
+72 CMD *
+80 CMD DROP
+23 CMD cmdJMP
+24 CMD cmdCALL
+25 CMD cmdRJMP
+26 CMD >R
+96 CMD !
+97 CMD OUTPORT
+29 CMD cmdRIF
+87 CMD cmdUNTIL
+1 CMD RET
+
+PROC IF
+  [ FORTH ]
+  0 to <number>
+  cfIF PUSH-CF
+  0x80 ZC,
+  use MANUL-LIT TO <number>
+  [ MANUL ]
+  cmdRIF
+ENDPROC
+
+PROC ELSE
+  [ FORTH ]
+  0 to <number>
+  CF-ID[] CFDEPTH 1 - -TH @ cfIF = [IF]
+    CODE^ CF-ADDR[] CFDEPTH 1 - -TH @ - 1 + DUP 0x1F >
+    [IF] " Error: relative jump is too long" PRINT [THEN]
+    0x1F AND 0x80 OR
+    CF-ADDR[] CFDEPTH 1 - -TH @ CODE[] + C!
+  [THEN]
+  CODE^ CF-ADDR[] CFDEPTH 1 - -TH !
+  0x80 ZC,
+  use MANUL-LIT TO <number>
+  [ MANUL ]
+  cmdRJMP
+ENDPROC
+
+PROC THEN
+    [ FORTH ]
+    0 to <number>
+    CF-ID[] CFDEPTH 1 - -TH @ cfIF = [IF]
+    CODE^ CF-ADDR[] CFDEPTH 1 - -TH @ - 1 - DUP 0x1F >
+    [IF] " Error: relative jump is too long" PRINT [THEN]
+    0x1F AND 0x80 OR
+    CF-ADDR[] CFDEPTH 1 - -TH @ CODE[] + C!
+    CFDEPTH -1 + TO CFDEPTH
+    0 ZC,
+  [THEN]
+  use MANUL-LIT TO <number>
+  [ MANUL ]
+ENDPROC
+
+
+PROC BEGIN
+  [ FORTH ]
+  cfBEGIN PUSH-CF
+  [ MANUL ]
+ENDPROC
+
+PROC UNTIL
+    [ FORTH ]
+    0 to <number>
+    CF-ID[] CFDEPTH 1 - -TH @ cfBEGIN = [IF]
+    87 ZC,
+    CF-ADDR[] CFDEPTH 1 - -TH @ LIT32!
+    CFDEPTH -1 + TO CFDEPTH
+    [ MANUL ] cmdRIF [ FORTH ]
+  [THEN]
+  use MANUL-LIT TO <number>
+  [ MANUL ]
+ENDPROC
+
+PROC DO
+  [ FORTH ]
+  0 to <number>
+    0x90 ZC, 0 ZC, 2 ZC, 0x81 ZC, 0x10 ZC, 0x90 ZC, 0x30 ZC,
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x30 ZC,
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x81 ZC, 0x10 ZC, 0x30 ZC,
+
+    cfDO PUSH-CF
+    use MANUL-LIT TO <number>
+  [ MANUL ]
+ENDPROC
+
+PROC LOOP
+    [ FORTH ]
+    0 to <number>
+    CF-ID[] CFDEPTH 1 - -TH @ cfDO = [IF]
+
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0 ZC, 2 ZC, 0x81 ZC, 0x10 ZC, 0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x30 ZC,
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0 ZC, 2 ZC,
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x81 ZC,
+    0x10 ZC, 0 ZC, 2 ZC, 0x15 ZC,
+    CF-ADDR[] CFDEPTH 1 - -TH @ MANUL-LIT
+    0x32 ZC,
+    0x90 ZC, 0 ZC, 2 ZC, 0x81 ZC, 0x11 ZC, 0x90 ZC, 0x30 ZC,
+
+    CFDEPTH -1 + TO CFDEPTH
+  [THEN]
+  use MANUL-LIT TO <number>
+  [ MANUL ]
+ENDPROC
+
+PROC I
+    [ FORTH ]
+    0 to <number>
+
+    0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0 ZC, 2 ZC,
+
+    use MANUL-LIT TO <number>
+  [ MANUL ]
+ENDPROC
+
+PROC VARIABLE
+  [ FORTH ]
+  CREATE DATA^ , DOES> @ MANUL-LIT
+  DATA^ 1 + TO DATA^
+  [ MANUL ]
+ENDPROC
+
+PROC :
+  [ FORTH ]
+  CREATE CODE^ , DOES> 9 ZC, @ LIT32!
+  [ MANUL ]
+ENDPROC
+
+PROC ;
+  [ FORTH ]
+  1 zc,
+  [ MANUL ]
+ENDPROC
+
+PROC ::
+  [ FORTH ]
+  CREATE CODE^ , DOES> 9 ZC, @ LIT32!
+  [ MANUL ]
+ENDPROC
+
+PROC ;;
+  [ FORTH ]
+  1 zc,
+  [ MANUL ]
+ENDPROC
+
+FORTH DEFINITIONS
+
+33 constant DUMPROWS
+
+: dump
+  0 stringgrid.show
+  0 50 2250 600 0 stringgrid.rect
+  17 0 stringgrid.cols
+  DUMPROWS 1 + 0 stringgrid.rows
+  1 0 stringgrid.cols.fixed
+  1 0 stringgrid.rows.fixed
+
+  DUMPROWS 1 do
+   i 1 - 16 *
+   0 i 0 stringgrid.int
+  loop
+
+  16 0 do
+    i
+    i 1 + 0 0 stringgrid.int
+  loop
+
+  // X row col index --
+  DUMPROWS 0 do
+    16 0 do
+      code[] j 16 * i + + c@
+      i 1 + j 1 + 0 stringgrid.int
+    loop
+  loop
+;
+
+: make-vhdl
+  0 edit.show
+  0 500 500 300 0 edit.rect
+  CODE^ 0 DO
+    code[] i -th @ .
+  LOOP
+;
+
+START:
+
+
+: DELAY 23 drop ;
+
+
+MAIN:
+
+// 1 NOP 0 OUTPORT
+
+
+
+begin
+  12 drop
+  DELAY
+0 until
+
+END
+
+FORTH
+
+dump
+
+
