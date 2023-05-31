@@ -16,9 +16,10 @@ proc demo
   i i series.linewidth
   100 0 do
     i s>f 0.1 f*
-    xy[] 5 i s>f 0.1 f* j s>f 0.5 f* 2.5 FGAUSS[]2D j series.fxy
+    xy[] 5 i s>f 0.1 f* j s>f 0.5 f* 2.5 3.0 FGAUSS[]2D j series.fxy
   loop
   loop
 endproc
 
 demo
+
