@@ -81,7 +81,6 @@ proc CORDIC-STEP
     reg3 @ reg2 @ step @ >> - new_reg[] 3 -th !
   then
   reg1 @ new_reg[] 1 -th !
-  // step 1 + to step
   4 0 do
     new_reg[] i -th @ regs[] i -th !
   loop
@@ -89,7 +88,7 @@ endproc
 
 proc cordic
   0 reg0 !
-  0 reg1 !
+//  0 reg1 !
   0 step !
   1073741824 reg2 !
   0 reg3 !
@@ -108,3 +107,46 @@ proc cordic
 
   loop
 endproc
+
+proc degree->phase // x -- phase
+// 90 == 2^30
+  s>f 90.0 f/  421657428.0 f* 2.0 f* f>s
+endproc
+
+proc deg->phase
+  s>f pi f* 536870912.0 f* 180.0 f/ f>s
+endproc
+
+proc set-phase // x --
+   reg1 !
+endproc
+
+create str 256 allot
+
+proc test
+  0 chart.show
+  0 950 2000 800 0 chart.rect
+  0 0 chart.addseries
+  1 0 chart.addseries
+  0xFF00FF 0 SERIES.COLOR
+  3 0 SERIES.LINEWIDTH
+  0x003FFF 1 SERIES.COLOR
+  3 1 SERIES.LINEWIDTH
+
+  0 series.clear
+  1 series.clear
+
+  90 0 do
+    i deg->phase set-phase cordic
+    i s>f
+    str 30 3 0 stringgrid.gettext
+    str str>int s>f
+    0 series.fxy
+
+    i s>f
+    str 30 4 0 stringgrid.gettext
+    str str>int s>f
+    1 series.fxy
+  loop
+endproc
+
