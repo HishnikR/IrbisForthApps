@@ -78,7 +78,7 @@ endproc
 "sum of atan" print
 calc_sum_atan .
 
-proc >> // x, n
+proc >> // x, n -- x>>n
  dup if
    0 do
      2 /
@@ -89,8 +89,25 @@ proc >> // x, n
 endproc
 
 
+proc << // x, n -- x<<n
+ dup if
+   0 do
+     2 *
+   loop
+ else
+   drop
+ then
+endproc
+
 proc NoAction
 
+endproc
+
+
+proc update-regs
+  4 0 do
+    new_reg[] i -th @ regs[] i -th !
+  loop
 endproc
 
 // ph reg0
@@ -110,9 +127,7 @@ proc CORDIC-STEP
     reg3 @ reg2 @ step @ >> - new_reg[] 3 -th !
   then
   reg1 @ new_reg[] 1 -th !
-  4 0 do
-    new_reg[] i -th @ regs[] i -th !
-  loop
+  update-regs
 endproc
 
 proc cordic
@@ -159,9 +174,45 @@ proc set-phase // x --
    reg1 !
 endproc
 
-create str 256 allot
 
-proc test
+// mult
+// 0 - A
+// 1 - B
+// 2 - mult
+
+proc mult-step
+  reg1 @ step @ >> 1 and if
+    reg0 @ step @ <<
+    reg2 @ + new_reg[] 2 -th !
+  else
+    reg2 @ new_reg[] 2 -th !
+  then
+  reg0 @ new_reg[] !
+  reg1 @ new_reg[] 1 -th !
+
+  update-regs
+endproc
+
+proc mult
+
+  0 reg2 !
+
+  31 0 do
+    i step !
+
+    4 0 do
+      regs[] i -th @
+       i 1 +
+       j 1 + 0
+       STRINGGRID.INT // x, col, row, index
+    loop
+
+    mult-step
+
+  loop
+endproc
+
+proc test-cordic
   0 chart.show
   0 950 2000 800 0 chart.rect
   0 0 chart.addseries
