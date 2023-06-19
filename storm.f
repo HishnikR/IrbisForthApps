@@ -1,11 +1,25 @@
+create str 256 allot
+
 PROC INIT_GRID
   0 STRINGGRID.SHOW
-  10 30 1200 900 0 STRINGGRID.RECT
+  10 30 1000 900 0 STRINGGRID.RECT
   5 0 STRINGGRID.COLS
   33 0 STRINGGRID.ROWS
   1 0 STRINGGRID.COLS.FIXED
   1 0 STRINGGRID.ROWS.FIXED
   0 0 STRINGGRID.EDIT
+
+  5 1 do
+    200 i 0 STRINGGRID.COL.WIDTH  // width, col, index --
+  loop
+
+  33 1 do
+    i 1 - str >str
+    str 0 i 0 stringgrid.text // s col row index --
+  loop
+
+  // STRINGGRID.ROW.HEIGHT  // height, row, index --
+
 ENDPROC
 
 INIT_GRID
@@ -54,6 +68,16 @@ create atan[]
 1.9999999999999999907481414614570289068402672080659 f>s ,
 0.99999999999999999884351768268212860613279610955611 f>s ,
 
+proc calc_sum_atan
+  0
+  30 1 do
+    atan[] i -th @ +
+  loop
+endproc
+
+"sum of atan" print
+calc_sum_atan .
+
 proc >> // x, n
  dup if
    0 do
@@ -62,6 +86,11 @@ proc >> // x, n
  else
    drop
  then
+endproc
+
+
+proc NoAction
+
 endproc
 
 // ph reg0
@@ -92,7 +121,7 @@ proc cordic
   0 step !
   1073741824 reg2 !
   0 reg3 !
-  32 0 do
+  31 0 do
     i step !
     atan[] i -th @ const_data !
 
@@ -106,6 +135,15 @@ proc cordic
     cordic-step
 
   loop
+
+  // no action for 31 stage
+    4 0 do
+      regs[] i -th @
+       i 1 +
+       32 0
+       STRINGGRID.INT // x, col, row, index
+    loop
+
 endproc
 
 proc degree->phase // x -- phase
@@ -136,16 +174,14 @@ proc test
   0 series.clear
   1 series.clear
 
-  90 0 do
+  91 0 do
     i deg->phase set-phase cordic
     i s>f
-    str 30 3 0 stringgrid.gettext
-    str str>int s>f
+    reg2 @ s>f
     0 series.fxy
 
     i s>f
-    str 30 4 0 stringgrid.gettext
-    str str>int s>f
+    reg3 @ s>f
     1 series.fxy
   loop
 endproc
