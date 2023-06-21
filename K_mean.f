@@ -1,6 +1,6 @@
 
-500 CONSTANT XSIZE
-500 CONSTANT YSIZE
+600 CONSTANT XSIZE
+600 CONSTANT YSIZE
 
 CREATE Z[] XSIZE YSIZE * CELLS ALLOT
 
@@ -87,39 +87,62 @@ CREATE DATAY[] 100 cells allot
 ;
 
 43.892857 46.392857 xy
-
 43.892857 64.25 xy
-
 43.892857 83.535713 xy
-
 158.07144 43.785713 xy
-
 158.07144 62.35714 xy
-
 158.07143 78.785713 xy
-
 73.785713 118.07142 xy
-
 73.071434 136.64287 xy
-
 90.214287 150.21429 xy
-
 110.21429 150.92857 xy
-
 128.07143 116.64285 xy
-
 128.78572 135.92857 xy
 
 int nxy
 
 create XY[] 200000 floats allot
-"un.csv" 0 FILE.TEXT.OPEN drop
+"cluster2.xy" 0 FILE.TEXT.OPEN drop
 0 XY[] FILE.TEXT.FXY to nxy
 0 file.text.close drop
 
+
+proc 3clusters
+  0 to nxy
+
+// 100 250
+  20 0 do
+     random abs 20 mod 10 - 100 + s>f
+     xy[] i nxy + 2 * -th f!
+     random abs 200 mod 100 - 250 + s>f
+     xy[] i nxy + 2 * 1 + -th f!
+  loop
+  20 to nxy
+// 250 250
+  20 0 do
+     random abs 20 mod 10 - 250 + s>f
+     xy[] i nxy + 2 * -th f!
+     random abs 200 mod 100 - 250 + s>f
+     xy[] i nxy + 2 * 1 + -th f!
+  loop
+  40 to nxy
+
+// 400 250
+  20 0 do
+     random abs 20 mod 10 - 400 + s>f
+     xy[] i nxy + 2 * -th f!
+     random abs 200 mod 100 - 250 + s>f
+     xy[] i nxy + 2 * 1 + -th f!
+  loop
+  60 to nxy
+
+endproc
+
+3clusters
+
 proc xyshow
   0 image.hide
-  100 100 500 500 0 image.rect
+  100 100 XSIZE YSIZE 0 image.rect
   1000 0 do
     1000 0 do
       i j 0 0 image.pixel
@@ -258,12 +281,17 @@ proc runall
   loop
 endproc
 
-8 constant #Y
+10 constant #Y
+10 constant #X
+
+create n[] #X #Y * CELLS ALLOT
+
+create strbuf 256 allot
 
 proc explorexy
 
   10.0 s0 F!
-  5.0 sstep F!
+  10.0 sstep F!
 
   0 label.show
 
@@ -280,16 +308,29 @@ proc explorexy
 
   #Y 0 do
     i s>f sstep f@ f* s0 F@ f+ sigmay f!
-    8 0 do
+    #X 0 do
       i 0 label.int
       10 0 do $ loop
       i s>f sstep f@ f* s0 F@ f+ sigmax f!
       xygauss
       sigmax f@
-      COUNTMAX NMAX s>f
+      COUNTMAX
+      NMAX n[] j #X * i + -th !
+      NMAX s>f
       j SERIES.FXY
+
+      strbuf " " S!
+      sigmax f@ strbuf f>str
+      sigmay f@ strbuf %F
+      strbuf NMAX %D
+
+      strbuf print
     loop
-    i .
+    i . 10 0 do $ loop
   loop
 endproc
 
+proc shown
+
+
+endproc
