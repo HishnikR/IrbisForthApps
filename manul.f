@@ -283,11 +283,39 @@ FORTH DEFINITIONS
   loop
 ;
 
+create str 256 allot
+create sbuf
+
+: >hexdigit // x -- ascii
+  48 +
+  dup 57 > if 7 + then
+;
+
+: add-byte // byte -
+  dup 16 / 15 and >hexdigit
+  0 str strlen 1 + str + c!
+  str strlen str + c!
+
+  15 and >hexdigit
+  0 str strlen 1 + str + c!
+  str strlen str + c!
+
+;
+
 : make-vhdl
   0 edit.show
   0 500 500 300 0 edit.rect
-  CODE^ 0 DO
-    code[] i -th @ .
+  CODE^ 1 + 4 / 0 DO
+    "  " str s!
+    str i %D
+    str " => x" s+
+      0 str strlen 1 + str + c!
+      34 str strlen str + c!
+    code[] i 4 * + 3 + c@ add-byte
+    code[] i 4 * + 2 + c@ add-byte
+    code[] i 4 * + 1 + c@ add-byte
+    code[] i 4 * + 0 + c@ add-byte
+    str print
   LOOP
 ;
 
