@@ -302,19 +302,26 @@ create sbuf
 
 ;
 
+create strx
+" => x" strx s!
+
 : make-vhdl
   0 edit.show
   0 500 500 300 0 edit.rect
   CODE^ 1 + 4 / 0 DO
     "  " str s!
     str i %D
-    str " => x" s+
+    str strx s+
       0 str strlen 1 + str + c!
       34 str strlen str + c!
     code[] i 4 * + 3 + c@ add-byte
     code[] i 4 * + 2 + c@ add-byte
     code[] i 4 * + 1 + c@ add-byte
     code[] i 4 * + 0 + c@ add-byte
+      0 str strlen 1 + str + c!
+      34 str strlen str + c!
+      0 str strlen 1 + str + c!
+      44 str strlen str + c!
     str print
   LOOP
 ;
@@ -332,7 +339,7 @@ MAIN:
 
 
 begin
-  12 drop
+  2 3 +
   DELAY
 0 until
 
