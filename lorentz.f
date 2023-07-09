@@ -194,7 +194,51 @@ USE RUNOPENGL3D TO OPENGL3D
 " Z+" 5 BUTTON.TEXT
 " Z+" 5 BUTTON.ACTION
 
+float x
+float y
+float z
+float s
+float r
+float b
+float dx
+float dy
+float dz
 
+float delta
+1.0e-4 delta f!
 
+proc init_lorentz
+  10.0 s f!
+  28.0 r f!
+  8.0 3.0 f/ b f!
+  3.051522 x f!
+  1.582542 y f!
+  15.62388 z f!
+endproc
 
+proc lorentz-step
+  s f@ y f@ x f@ f- f* dx f!
+  r f@ z f@ f- x f@ f* y f@ f- dy f!
+  x f@ y f@ f* b f@ z f@ f* f- dz f!
+  dx f@ delta f@ f* x f@ f+ x f!
+  dy f@ delta f@ f* y f@ f+ y f!
+  dz f@ delta f@ f* z f@ f+ z f!
+endproc
+
+int steps 1000000 to steps
+
+proc lorentz2d
+  0 chart.show
+  0 chart.align.client
+  0 0 chart.addseries
+  0 series.clear
+  init_lorentz
+  steps 0 do
+    lorentz-step
+    x f@ y f@ 0 series.fxy
+  loop
+
+endproc
+
+lorentz2d
 
