@@ -258,7 +258,7 @@ FORTH DEFINITIONS
 
 : dump
   0 stringgrid.show
-  0 50 2250 600 0 stringgrid.rect
+  0 50 1120 600 0 stringgrid.rect
   17 0 stringgrid.cols
   DUMPROWS 1 + 0 stringgrid.rows
   1 0 stringgrid.cols.fixed
@@ -308,7 +308,7 @@ create strx
 : make-vhdl
   0 edit.show
   0 500 500 300 0 edit.rect
-  CODE^ 1 + 4 / 0 DO
+  CODE^ 1 + 4 / 2 + 0 DO
     "  " str s!
     str i %D
     str strx s+
@@ -326,6 +326,11 @@ create strx
   LOOP
 ;
 
+
+: run
+
+;
+
 START:
 
 
@@ -339,8 +344,9 @@ MAIN:
 
 
 begin
-  2 3 +
-  DELAY
+  20000 INPORT
+  1 +
+  20000 OUTPORT
 0 until
 
 END
@@ -348,5 +354,6 @@ END
 FORTH
 
 dump
+make-vhdl
 
 
