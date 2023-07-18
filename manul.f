@@ -306,8 +306,8 @@ create strx
 " => x" strx s!
 
 : make-vhdl
-  0 edit.show
-  0 500 500 300 0 edit.rect
+//  0 edit.show
+//  0 500 500 300 0 edit.rect
   CODE^ 1 + 4 / 2 + 0 DO
     "  " str s!
     str i %D
@@ -326,22 +326,47 @@ create strx
   LOOP
 ;
 
+7 int #UART
+
+: send-word32 // word32 --
+  dup           0x0f and         0 UART.WRITE
+  dup  4 rshift 0x0f and 0x10 or 0 UART.WRITE
+  dup  8 rshift 0x0f and 0x20 or 0 UART.WRITE
+  dup 12 rshift 0x0f and 0x30 or 0 UART.WRITE
+  dup 16 rshift 0x0f and 0x40 or 0 UART.WRITE
+  dup 20 rshift 0x0f and 0x50 or 0 UART.WRITE
+  dup 24 rshift 0x0f and 0x60 or 0 UART.WRITE
+  dup 28 rshift 0x0f and 0x70 or 0 UART.WRITE
+  drop
+  241 0 UART.WRITE  // we = 1
+  242 0 UART.WRITE  // we = 0
+;
 
 : run
 
+  #UART0 UART.SETPORT
+  115200 0 UART.BAUDRATE
+  0 UART.OPEN
+
+  243 0 UART.WRITE // reset = 1
+  244 0 UART.WRITE // Active Core = 0
+  240 0 UART.WRITE // loadaddr = 0
+
+  CODE^ 4 /  2 + 0 DO
+    CODE[] i -th @ send-word32
+  LOOP
+
+  244 0 UART.WRITE // reset = 0
+  0 UART.CLOSE
 ;
 
 START:
 
 
-: DELAY 23 drop ;
+// : DELAY 23 drop ;
 
 
 MAIN:
-
-// 1 NOP 0 OUTPORT
-
-
 
 begin
   20000 INPORT
