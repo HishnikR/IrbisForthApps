@@ -98,12 +98,16 @@ proc run
 
   99 1 chart.addseries
   99 series.clear
+  98 1 chart.addseries
+  98 series.clear
   3 99 SERIES.LINEWIDTH
 
-  10 0 do
+  0.01 0.01 98 series.fxy
+
+  50 0 do
     i 0 chart.addseries
     i to #series
-    i s>f 0.5 f* 0.5 f+ sigma f!
+    i s>f 0.1 f* 0.1 f+ sigma f!
     run-r
 
     sigma f@
