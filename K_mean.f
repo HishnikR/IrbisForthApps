@@ -1,6 +1,6 @@
 
-600 CONSTANT XSIZE
-600 CONSTANT YSIZE
+300 CONSTANT XSIZE
+300 CONSTANT YSIZE
 
 CREATE Z[] XSIZE YSIZE * CELLS ALLOT
 
@@ -64,6 +64,7 @@ PROC TESTFILL
     loop
   loop
 ENDPROC
+
 
 INT NDATA
 
@@ -138,7 +139,7 @@ proc 3clusters
 
 endproc
 
-3clusters
+// 3clusters
 
 proc xyshow
   0 image.hide
@@ -187,6 +188,19 @@ proc xygauss
   loop
 endproc
 
+proc gauss // f: x -- f: p
+  fdup f*
+  sigma f@ fdup f* f/ -1.0 f* fexp
+endproc
+
+proc gauss4 // f: x -- f: p
+  fdup f*
+  sigma f@ fdup f* f/
+  fdup f*
+  -1.0 f* fexp
+endproc
+
+
 PROC FILLSIGMA
      ysize 0 do
       xsize 0 do
@@ -194,21 +208,25 @@ PROC FILLSIGMA
       loop
     loop
 
-  0 PROGRESSBAR.SHOW
-  100 50 XSIZE 30 0 PROGRESSBAR.RECT
-  0 0 PROGRESSBAR.MIN
-  YSIZE 10 / 0 PROGRESSBAR.MAX
-
    1.0 ZMAX F!
    NDATA 0 DO
      ysize 0 do
       xsize 0 do
-        i s>f j s>f k Gauss2d
+
+//        i s>f j s>f k Gauss2d
+
+        datax[] k -th f@ i s>f f- fdup f*
+        datay[] k -th f@ j s>f f- fdup f* f+ fsqrt
+
+        gauss4
+
         Z[] j xsize * i + -TH F@ F+
         FDUP ZMAX F@ F> IF FDUP ZMAX F! THEN
+
+
+
         Z[] j xsize * i + -TH F!
       loop
-      I 10 / NDATA / 0 PROGRESSBAR.SETPOSITION $
     loop
    LOOP
 ENDPROC
@@ -250,7 +268,32 @@ ENDPROC
 float s0 1.0 s0 F!
 float sstep 1.0 sstep F!
 
+proc gauss // f: x -- f: p
+  fdup f*
+  sigma f@ fdup f* f/ -1.0 f* fexp
+endproc
 
+proc gauss^2 // f: x -- f: p
+  fdup f* fdup f*
+  sigma f@ fdup f* fdup f* f/ -1.0 f* fexp
+endproc
+
+: test-nl
+  0 chart.show
+  0 0 chart.addseries
+  0 series.clear
+  1 0 chart.addseries
+  1 series.clear
+  10.0 sigma f!
+  100 0 do
+     i 50 - s>f
+     fdup gauss^2 0 series.fxy
+
+     i 50 - s>f
+     fdup gauss 1 series.fxy
+
+  loop
+;
 
 proc explore
   0 chart.show
@@ -260,7 +303,7 @@ proc explore
   600 XSIZE + 100 1000 1000 0 chart.RECT
   0.0 0.0 0 series.fxy
 
-  50 0 do
+  10 0 do
     i s>f sstep f@ f* s0 F@ f+ sigma f!
     FILLSIGMA
     sigma f@
