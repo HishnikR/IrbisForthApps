@@ -22,8 +22,8 @@ int nsigma
 
 float p_max
 
-500 CONSTANT XSIZE
-500 CONSTANT YSIZE
+100 CONSTANT XSIZE
+100 CONSTANT YSIZE
 
 CREATE Z[] XSIZE YSIZE * CELLS ALLOT
 
@@ -88,14 +88,14 @@ ENDPROC
 
 1.0 sigma f!
 0.0 x0 f!
--5.0 x_min f!
-5.0 x_max f!
-1000 to nx
+-200.0 x_min f!
+200.0 x_max f!
+xsize to nx
 
 0.0 phi0 f!
 -90.0 phi_min f!
 90.0 phi_max f!
-1000 to nphi
+ysize to nphi
 
 
 0.5 sigma_min f!
@@ -104,11 +104,24 @@ ENDPROC
 
 calc-steps
 
-create x[] 1.0 f, 2.0 f, 3.0 f, 4.0 f, 5.0 f,
-int xsize
-5 to xsize
+int datasize
+0 to datasize
 
-create y[] 1.0 f, 2.0 f, 3.0 f, 4.0 f, 5.0 f,
+create x[] 10000 floats allot
+create y[] 10000 floats allot
+
+: fxy // f: x, y --
+  y[] datasize -th f!
+  x[] datasize -th f!
+  datasize 1 + to datasize
+;
+
+1.0 1.0 fxy
+2.0 2.0 fxy
+3.0 3.0 fxy
+
+
+
 
 : gauss // f: x -- f: gauss
 // use x0, sigma
@@ -118,7 +131,7 @@ create y[] 1.0 f, 2.0 f, 3.0 f, 4.0 f, 5.0 f,
 
 : p(x)
   0.0
-  xsize 0 do
+  datasize 0 do
     x[] i -th f@ gauss f+
   loop
   sigma f@ f/
@@ -182,11 +195,27 @@ add-series
   180.0 f/ pi f*
 ;
 
+200 constant imagex
+200 constant imagey
+
+int #image
+
+proc scan-image
+  imagey 0 do
+    imagex 0 do
+       i j #image image.getpixel 0 > if
+         i s>f j s>f fxy
+       then
+    loop
+  loop
+endproc
+
+
 : linear
 // x - смещение, phi - угол
   0 image.show
 
-  300 0 1000 1000 0 image.rect
+  300 0 xsize ysize 0 image.rect
   // 0 0 100 100 0 image.box
   x_min f@ x0 f!
   x_max f@ x_min f@ f- nx s>f f/ x_step f!
@@ -199,7 +228,7 @@ add-series
   x_min f@ x0 f!
     nx 0 do
       0.0
-      xsize 0 do
+      datasize 0 do
         x[] i -th f@ phi0 f@ ->radians fcos f*
         y[] i -th f@ phi0 f@ ->radians fsin f* f+
         x0 f@ f-
@@ -213,7 +242,7 @@ add-series
         x0 f@ x_argmax f!
         phi0 f@ phi_argmax f!
       then
-      i j f->color 0 image.pixel
+      z[] [i,j] -th f!
       x0 f@ x_step f@ f+ x0 f!
     loop
     phi0 f@ phi_step f@ f+ phi0 f!
@@ -226,6 +255,17 @@ add-series
   phi_argmax f@ f.
 ;
 
+#image IMAGE.SHOW
+0 0 200 200 #image IMAGE.RECT
+"cube.bmp" #image IMAGE.LOAD
 
+0 to datasize
+scan-image
+"Found pixels: " print
+datasize .
+
+linear
+300 0 xsize ysize 0 image.rect
+zshow
 
 
