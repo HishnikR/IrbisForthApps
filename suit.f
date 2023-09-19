@@ -1,3 +1,4 @@
+"hsv.f" L
 
 float x0
 float x_min
@@ -264,8 +265,11 @@ scan-image
 "Found pixels: " print
 datasize .
 
-linear
-300 0 xsize ysize 0 image.rect
-zshow
+proc runall
+
+  linear
+  300 0 xsize ysize 0 image.rect
+  zshow
+endproc
 
 
