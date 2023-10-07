@@ -87,7 +87,7 @@ ENDPROC
   sigma_max f@ sigma_min f@ f- nsigma s>f f/ sigma_step f!
 ;
 
-1.0 sigma f!
+0.1 sigma f!
 0.0 x0 f!
 -200.0 x_min f!
 200.0 x_max f!
@@ -272,4 +272,17 @@ proc runall
   zshow
 endproc
 
+
+proc testhsv
+  9 image.show
+  100 500 360 200 9 image.rect
+  50 0 do
+  360 0 do
+    i j
+    i 1.0 1.0
+    HSV->RGB // h, f: s, v - rgb
+    R 65536 * G 256 * + B + 9 image.pixel
+  loop
+  loop
+endproc
 
