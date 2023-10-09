@@ -281,7 +281,7 @@ proc testhsv
     i j
     i 1.0 1.0
     HSV->RGB // h, f: s, v - rgb
-    R 65536 * G 256 * + B + 9 image.pixel
+    B 65536 * G 256 * + R + 9 image.pixel
   loop
   loop
 endproc
