@@ -1,4 +1,7 @@
 
+FORTH DEFINITIONS
+
+
 65536 CONSTANT MAXCODE
 16384 CONSTANT MAXDATA
 
@@ -7,9 +10,20 @@ CREATE DATA[] MAXDATA CELLS ALLOT
 int CODE^
 int DATA^
 
+: null 0 ;
+
 : ZC,
   CODE[] CODE^ + C!
   CODE^ 1 + TO CODE^
+;
+
+: ZA,
+  CODE[] CODE^ + !
+  CODE^ 4 + TO CODE^
+;
+
+: reserve32
+  CODE^ 4 + TO CODE^
 ;
 
 0 CONSTANT cmdNOP
@@ -17,6 +31,9 @@ int DATA^
 : CMD CREATE , DOES> @ ZC, ;
 : CMD2 CREATE , DOES> cmdNOP ZC, @ ZC, ;
 
+proc reset-number
+  0 to <number>
+endproc
 
 100 CONSTANT FLOW-SIZE
 CREATE CF-ADDR[] FLOW-SIZE CELLS ALLOT
@@ -40,6 +57,12 @@ int CFDEPTH
   256 / 65536 / 0xFF AND ZC,
 ;
 
+: LIT16! // N --
+  DUP 0xFF AND ZC,
+  256 / 0xFF AND ZC,
+;
+
+
 : MANUL-LIT // N --
   use 0 to <number>
   40 ZC, // code for LIT32
@@ -49,6 +72,12 @@ int CFDEPTH
 
 : TEST-LIT CODE^ . ZC, ;
 
+: D! // d, a --
+  OVER 0xFF AND OVER C!
+  OVER 256 / 0xFF AND OVER 1 + C!
+  OVER 65536 / 0xFF AND OVER 2 + C!
+  256 / 65536 / 0xFF AND SWAP 3 + C!
+;
 
 VOCABULARY MANUL
 
@@ -76,16 +105,13 @@ VOCABULARY MANUL
   FORTH
 ;
 
-// : [IF] [COMPILE] IF ; IMMEDIATE
-// : [ELSE] [COMPILE] ELSE ; IMMEDIATE
-// : [THEN] [COMPILE] THEN ; IMMEDIATE
-
-
 
 MANUL DEFINITIONS
 
 0  CMD NOP
 
+12 CMD cmdJMP16
+13 CMD LOOP
 17 CMD NOT
 16 CMD @
 18 CMD NEGATE
@@ -99,6 +125,7 @@ MANUL DEFINITIONS
 // 10 CMD R>
 34 CMD DEPTH
 35 CMD RDEPTH
+36 CMD I
 64 CMD +
 65 CMD -
 66 CMD AND
@@ -115,46 +142,44 @@ MANUL DEFINITIONS
 26 CMD >R
 96 CMD !
 97 CMD OUTPORT
-29 CMD cmdRIF
+86 CMD cmdIF
 87 CMD cmdUNTIL
+90 CMD cmdIF16
+
+101 CMD DO
 1 CMD RET
 
 PROC IF
   [ FORTH ]
-  0 to <number>
+  reset-number
   cfIF PUSH-CF
-  0x80 ZC,
-  use MANUL-LIT TO <number>
   [ MANUL ]
-  cmdRIF
+  cmdIF
+  null ZA,
+  use MANUL-LIT TO <number>
 ENDPROC
 
 PROC ELSE
   [ FORTH ]
-  0 to <number>
+  reset-number
   CF-ID[] CFDEPTH 1 - -TH @ cfIF = [IF]
-    CODE^ CF-ADDR[] CFDEPTH 1 - -TH @ - 1 + DUP 0x1F >
-    [IF] " Error: relative jump is too long" PRINT [THEN]
-    0x1F AND 0x80 OR
-    CF-ADDR[] CFDEPTH 1 - -TH @ CODE[] + C!
+    23 ZC,
+    reserve32
+
+
   [THEN]
-  CODE^ CF-ADDR[] CFDEPTH 1 - -TH !
-  0x80 ZC,
+
   use MANUL-LIT TO <number>
   [ MANUL ]
-  cmdRJMP
 ENDPROC
 
 PROC THEN
-    [ FORTH ]
-    0 to <number>
-    CF-ID[] CFDEPTH 1 - -TH @ cfIF = [IF]
-    CODE^ CF-ADDR[] CFDEPTH 1 - -TH @ - 1 - DUP 0x1F >
-    [IF] " Error: relative jump is too long" PRINT [THEN]
-    0x1F AND 0x80 OR
-    CF-ADDR[] CFDEPTH 1 - -TH @ CODE[] + C!
-    CFDEPTH -1 + TO CFDEPTH
-    0 ZC,
+  [ FORTH ]
+  reset-number
+  CF-ID[] CFDEPTH 1 - -TH @ cfIF = [IF]
+    CODE^
+    CF-ADDR[] CFDEPTH 1 - -TH @ CODE[] + 1 + D!
+    CFDEPTH 1 - TO CFDEPTH
   [THEN]
   use MANUL-LIT TO <number>
   [ MANUL ]
@@ -168,21 +193,20 @@ PROC BEGIN
 ENDPROC
 
 PROC UNTIL
-    [ FORTH ]
-    0 to <number>
-    CF-ID[] CFDEPTH 1 - -TH @ cfBEGIN = [IF]
+  [ FORTH ]
+  reset-number
+  CF-ID[] CFDEPTH 1 - -TH @ cfBEGIN = [IF]
     87 ZC,
     CF-ADDR[] CFDEPTH 1 - -TH @ LIT32!
-    CFDEPTH -1 + TO CFDEPTH
-    [ MANUL ] cmdRIF [ FORTH ]
+    CFDEPTH 1 - TO CFDEPTH
   [THEN]
   use MANUL-LIT TO <number>
   [ MANUL ]
 ENDPROC
 
-PROC DO
+PROC [DO]
   [ FORTH ]
-  0 to <number>
+  reset-number
     0x90 ZC, 0 ZC, 2 ZC, 0x81 ZC, 0x10 ZC, 0x90 ZC, 0x30 ZC,
     0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x30 ZC,
     0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x81 ZC, 0x10 ZC, 0x30 ZC,
@@ -192,9 +216,9 @@ PROC DO
   [ MANUL ]
 ENDPROC
 
-PROC LOOP
+PROC [LOOP]
     [ FORTH ]
-    0 to <number>
+    reset-number
     CF-ID[] CFDEPTH 1 - -TH @ cfDO = [IF]
 
     0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0 ZC, 2 ZC, 0x81 ZC, 0x10 ZC, 0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0x30 ZC,
@@ -211,9 +235,9 @@ PROC LOOP
   [ MANUL ]
 ENDPROC
 
-PROC I
+PROC [I]
     [ FORTH ]
-    0 to <number>
+    reset-number
 
     0x90 ZC, 0 ZC, 2 ZC, 3 ZC, 0 ZC, 2 ZC,
 
@@ -230,7 +254,7 @@ ENDPROC
 
 PROC :
   [ FORTH ]
-  CREATE CODE^ , DOES> 9 ZC, @ LIT32!
+  CREATE CODE^ , DOES> 9 ZC, @ LIT16! // LIT32!
   [ MANUL ]
 ENDPROC
 
@@ -326,7 +350,8 @@ create strx
   LOOP
 ;
 
-7 int #UART
+int #UART
+6 to #UART
 
 : send-word32 // word32 --
   dup           0x0f and         0 UART.WRITE
@@ -344,34 +369,89 @@ create strx
 
 : run
 
-  #UART0 UART.SETPORT
+  #UART 0 UART.SETPORT
   115200 0 UART.BAUDRATE
   0 UART.OPEN
+  1 = if "UART opening: ok" PRINT then
 
-  243 0 UART.WRITE // reset = 1
-  244 0 UART.WRITE // Active Core = 0
   240 0 UART.WRITE // loadaddr = 0
+  243 0 UART.WRITE // reset = 1
+  247 0 UART.WRITE // ext program = 1
 
-  CODE^ 4 /  2 + 0 DO
-    CODE[] i -th @ send-word32
+  " Bytes to write:" PRINT
+  CODE^ .
+
+  CODE^ 4 /  3 + 0 DO
+    CODE[] i 4 * + @ 0xffffffff and
+    send-word32
   LOOP
 
+  246 0 UART.WRITE // ext program = 0
   244 0 UART.WRITE // reset = 0
+
+  0 0 UART.WRITE
+
   0 UART.CLOSE
+  "Starting." PRINT
+;
+
+: UART! // x --
+  0 UART.OPEN
+  1 = if "UART opening: ok" PRINT then
+    0 UART.WRITE
+  0 UART.CLOSE
+;
+
+
+: SCAN
+  0 LISTBOX.SHOW
+  200 0 100 50 0 listbox.rect
+  0 LISTBOX.CLEAR
+  10 1 DO
+    I 0 UART.SETPORT
+    0 UART.OPEN IF I 0 LISTBOX.ADD.INT 0 UART.CLOSE THEN
+  LOOP
 ;
 
 START:
 
+: del
+  10000000 0 do
+  loop
+;
 
-// : DELAY 23 drop ;
+: TEST
+  IF 1 THEN
+;
 
+: DELAY
+  5000000
+  begin
+    1 -
+    DUP 0 =
+  until
+  DROP
+;
 
 MAIN:
 
+
 begin
-  20000 INPORT
-  1 +
-  20000 OUTPORT
+  20000 INPORT 0 = IF
+    1 20000 OUTPORT
+    0 17000 outport
+    DELAY
+  THEN
+  20000 INPORT 1 = IF
+    3 20000 OUTPORT
+    250 17000 outport
+    DELAY
+  THEN
+  20000 INPORT 2 = IF
+    7 20000 OUTPORT
+    500 17000 outport
+    DELAY
+  THEN
 0 until
 
 END
@@ -381,4 +461,12 @@ FORTH
 dump
 make-vhdl
 
+0 button.show
+0 0 90 30 0 button.rect
+"run" 0 button.text
+"run" 0 button.action
 
+1 button.show
+100 0 90 30 1 button.rect
+"scan" 1 button.text
+"scan" 1 button.action
