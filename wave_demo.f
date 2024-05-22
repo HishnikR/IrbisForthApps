@@ -35,6 +35,7 @@ variable signal
 variable sumre
 variable sumim
 
+variable phase
 
 : DRAW
   0 SERIES.CLEAR
@@ -60,7 +61,7 @@ variable sumim
     1 SERIES.FXY
 
     I 500 - S>F
-    FDUP 50.0 F/ 0.1 f- FCOS fdup signal f!
+    FDUP 50.0 F/ phase f@ f- FCOS fdup signal f!
     2 SERIES.FXY
 
     I 500 - S>F
@@ -117,14 +118,20 @@ DRAW
   LOOP
 ;
 
-: draw-sin
-  1000 0 DO
-    I 500 - S>F
-    FDUP 50.0 F/ FCOS
-    2 SERIES.FXY
-  LOOP
-;
+PROC DRAW-PHASE
+  0 TRACKBAR.GETPOSITION s>f 255.0 f/ pi f* 2.0 f/
+  phase f!
+  draw
+ENDPROC
 
+  0 TRACKBAR.GETPOSITION
+
+0 TRACKBAR.SHOW
+0 0 500 50 0 TRACKBAR.RECT
+0 0 TRACKBAR.MIN
+255 0 TRACKBAR.MAX
+25 0 TRACKBAR.STEP
+"DRAW-PHASE" 0 TRACKBAR.ACTION
 
 
 
