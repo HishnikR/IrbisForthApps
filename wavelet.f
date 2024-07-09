@@ -21,12 +21,12 @@ endproc
 float periods 27.0 periods f!
 
 
-float WAmpl 2.0e10 WAmpl f!
+float WAmpl 0x100000 s>f  WAmpl f!
 float wav_k 319.35 wav_k f!
 
-float Ampl 32767.0 Ampl f!
-float fs   1.0e6 fs f!
-float f0   1.0e3 f0 f!
+float Ampl 0x200000 s>f Ampl f!
+float fs   120.0e6 fs f!
+float f0   10.0e6 f0 f!
 float phi0 0.0 phi0 f!
 
 periods f@ 2.0 f/ fs f@ f* f0 f@ f/ f>s  to n
