@@ -1,7 +1,7 @@
 
 100000 constant MAXSIZE
 
-create signal[] MAXSIZE CELLS ALLOT
+create signal[] MAXSIZE 4 * CELLS ALLOT
 create wav_re[] MAXSIZE CELLS ALLOT
 create wav_im[] MAXSIZE CELLS ALLOT
 
@@ -18,6 +18,15 @@ proc calc-wavelet // - wavre, wavim
   [X*Y] // addr1, addr2, n – y –
 endproc
 
+
+proc calc-im // shift - wavim
+  cells
+  signal[] +
+  wav_im[]
+  n 2 * 1 +
+  [X*Y] // addr1, addr2, n – y –
+endproc
+
 float periods 27.0 periods f!
 
 
@@ -25,7 +34,7 @@ float WAmpl 0x100000 s>f  WAmpl f!
 float wav_k 319.35 wav_k f!
 
 float Ampl 0x200000 s>f Ampl f!
-float fs   120.0e6 fs f!
+float fs   250.0e6 fs f!
 float f0   10.0e6 f0 f!
 float phi0 0.0 phi0 f!
 
@@ -37,7 +46,8 @@ int re
 int im
 
 proc fill-signal
-  n 2 * 2 + 0 do
+//  n 2 * 2 + 0 do
+  n 4 * 2 + 0 do
     i n - 1 - s>f 2.0 f* pi f* f0 f@ f* fs f@ f/ phi0 f@ f+ fcos
     Ampl f@ f* f>s
 
@@ -182,11 +192,33 @@ endproc
   loop
 ;
 
+proc rotate-basis
+  0 series.clear
+  0 CHART.SHOW
+  0 0 chart.addseries
+  3 0 SERIES.LINEWIDTH
+  0 chart.align.client
+
+  3 s>f pi f* 180.0 f/ phi0 f!
+  fill-sinus
+  cr
+
+  16 0 do
+     i s>f
+     i calc-im i . dup . cr
+     s>f
+     0 series.fxy
+  loop
+
+  0 calc-im s>f 1 calc-im s>f f/
+  360.0 f* f0 f@ f* fs f@ f/
+  f.
+endproc
 
 // fill_demo
 // calc-wavelet . .
 
-fourier
-
+// fourier
+rotate-basis
 
 
