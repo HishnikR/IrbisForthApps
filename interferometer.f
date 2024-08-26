@@ -2,13 +2,17 @@
 int size
 
 create x[]
-  "E:\XSoft\VNIIFTRI\Sample2_channel1.txt" 0 file.text.open drop
-  0 x[] file.text.fx to size
+//  "E:\XSoft\VNIIFTRI\Sample2_channel1.txt" 0 file.text.open drop
+//  0 x[] file.text.fx to size
+  "E:\XSoft\VNIIFTRI\Sample1_channel_1.txt" 0 file.text.open drop
+  0 x[] file.text.x to size
 size cells allot
 
 create y[]
-  "E:\XSoft\VNIIFTRI\Sample2_channel2.txt" 0 file.text.open drop
-  0 y[] file.text.fx to size
+//  "E:\XSoft\VNIIFTRI\Sample2_channel2.txt" 0 file.text.open drop
+//  0 y[] file.text.fx to size
+  "E:\XSoft\VNIIFTRI\Sample1_channel_2.txt" 0 file.text.open drop
+  0 y[] file.text.x to size
 size cells allot
 
 size .
@@ -91,11 +95,11 @@ endproc
 0 0 chart.addseries
 
 
-x[] 10000  0 series.plotfx
+x[] 10000000  0 series.plotx
 
 1 chart.show
 1 1 chart.addseries
-y[] 10000  1 series.plotfx
+y[] 10000000  1 series.plotx
 
 0 0 1200 200 0 chart.rect
 0 200 1200 200 1 chart.rect
@@ -104,7 +108,7 @@ y[] 10000  1 series.plotfx
 2 2 chart.addseries
 3 2 chart.addseries
 0 400 600 400 2 chart.rect
-x[] y[] 5000 2 series.plotfxy
+x[] y[] 220000 2 series.plotxy
 
 
 // x = x * cos - y * sin
