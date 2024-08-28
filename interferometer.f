@@ -4,15 +4,15 @@ int size
 create x[]
 //  "E:\XSoft\VNIIFTRI\Sample2_channel1.txt" 0 file.text.open drop
 //  0 x[] file.text.fx to size
-  "E:\XSoft\VNIIFTRI\Sample1_channel_1.txt" 0 file.text.open drop
-  0 x[] file.text.x to size
+//  "E:\XSoft\VNIIFTRI\Sample1_channel_1.txt" 0 file.text.open drop
+//  0 x[] file.text.x to size
 size cells allot
 
 create y[]
 //  "E:\XSoft\VNIIFTRI\Sample2_channel2.txt" 0 file.text.open drop
 //  0 y[] file.text.fx to size
-  "E:\XSoft\VNIIFTRI\Sample1_channel_2.txt" 0 file.text.open drop
-  0 y[] file.text.x to size
+//  "E:\XSoft\VNIIFTRI\Sample1_channel_2.txt" 0 file.text.open drop
+//  0 y[] file.text.x to size
 size cells allot
 
 size .
@@ -107,7 +107,7 @@ y[] 10000000  1 series.plotx
 2 chart.show
 2 2 chart.addseries
 3 2 chart.addseries
-0 400 600 400 2 chart.rect
+0 400 600 300 2 chart.rect
 x[] y[] 220000 2 series.plotxy
 
 
@@ -165,7 +165,7 @@ endproc
 
 
 3 chart.show
-600 400 600 400 3 chart.rect
+600 400 600 300 3 chart.rect
 4 3 chart.addseries
 5 3 chart.addseries
 
@@ -193,8 +193,61 @@ proc explorephase
 loop
 endproc
 
-explorephase
+float Ax
+float Ay
+float Dx
+float Dy
+float dphase
 
+proc update
+  0 TRACKBAR.GETPOSITION S>F Ax f!
+  1 TRACKBAR.GETPOSITION S>F Ay f!
+  2 TRACKBAR.GETPOSITION 250 - S>F Dx f!
+  3 TRACKBAR.GETPOSITION 250 - S>F Dy f!
+  4 TRACKBAR.GETPOSITION 250 - S>F dphase f!
+
+  "Ax= " PRINT Ax f@ f. cr
+  "Ay= " PRINT Ay f@ f. cr
+  "Dx= " PRINT Dx f@ f. cr
+  "Dy= " PRINT Dy f@ f. cr
+  "Delta phase= " PRINT dphase f@ f. cr
+endproc
+
+
+0 TRACKBAR.SHOW
+0 700 500 30 0 TRACKBAR.RECT
+0 0 TRACKBAR.MIN
+500 0 TRACKBAR.MAX
+25 0 TRACKBAR.STEP
+"update" 0 TRACKBAR.ACTION
+
+1 TRACKBAR.SHOW
+550 700 500 30 1 TRACKBAR.RECT
+0 1 TRACKBAR.MIN
+500 1 TRACKBAR.MAX
+25 1 TRACKBAR.STEP
+"update" 1 TRACKBAR.ACTION
+
+2 TRACKBAR.SHOW
+0 750 500 30 2 TRACKBAR.RECT
+0 2 TRACKBAR.MIN
+500 2 TRACKBAR.MAX
+25 2 TRACKBAR.STEP
+"update" 2 TRACKBAR.ACTION
+
+3 TRACKBAR.SHOW
+550 750 500 30 3 TRACKBAR.RECT
+0 3 TRACKBAR.MIN
+500 3 TRACKBAR.MAX
+25 3 TRACKBAR.STEP
+"update" 3 TRACKBAR.ACTION
+
+4 TRACKBAR.SHOW
+0 800 500 30 4 TRACKBAR.RECT
+0 4 TRACKBAR.MIN
+500 4 TRACKBAR.MAX
+25 4 TRACKBAR.STEP
+"update" 4 TRACKBAR.ACTION
 
 
 
