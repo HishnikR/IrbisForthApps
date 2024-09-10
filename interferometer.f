@@ -4,18 +4,30 @@ int size
 create x[]
 //  "E:\XSoft\VNIIFTRI\Sample2_channel1.txt" 0 file.text.open drop
 //  0 x[] file.text.fx to size
-//  "E:\XSoft\VNIIFTRI\Sample1_channel_1.txt" 0 file.text.open drop
-//  0 x[] file.text.x to size
+  "E:\XSoft\VNIIFTRI\Sample1_channel_1.txt" 0 file.text.open drop
+  0 x[] file.text.x to size
 size cells allot
 
 create y[]
 //  "E:\XSoft\VNIIFTRI\Sample2_channel2.txt" 0 file.text.open drop
 //  0 y[] file.text.fx to size
-//  "E:\XSoft\VNIIFTRI\Sample1_channel_2.txt" 0 file.text.open drop
-//  0 y[] file.text.x to size
+  "E:\XSoft\VNIIFTRI\Sample1_channel_2.txt" 0 file.text.open drop
+  0 y[] file.text.x to size
 size cells allot
 
 size .
+
+proc convert
+"E:\XSoft\VNIIFTRI\channel_x.bin" 0 FILE.BIN.OPENW
+0 x[] size cells FILE.BIN.WRITE
+0 FILE.BIN.CLOSE
+
+"E:\XSoft\VNIIFTRI\channel_y.bin" 0 FILE.BIN.OPENW
+0 y[] size cells FILE.BIN.WRITE
+0 FILE.BIN.CLOSE
+
+endproc
+
 
 int n
 int signal[]
@@ -199,6 +211,19 @@ float Dx
 float Dy
 float dphase
 
+: >rad 180.0 f/ pi f* ;
+
+proc draw-Lissajous
+  3 series.clear
+  0x0000ff 3 series.color
+  3 3 series.linewidth
+  360 0 do
+     i s>f >rad fsin Ax f@ f* Dx f@ f+
+     i s>f dphase f@ f+ >rad fsin Ay f@ f* Dy f@ f+
+     3 series.fxy
+  loop
+endproc
+
 proc update
   0 TRACKBAR.GETPOSITION S>F Ax f!
   1 TRACKBAR.GETPOSITION S>F Ay f!
@@ -211,6 +236,8 @@ proc update
   "Dx= " PRINT Dx f@ f. cr
   "Dy= " PRINT Dy f@ f. cr
   "Delta phase= " PRINT dphase f@ f. cr
+
+  draw-Lissajous
 endproc
 
 
