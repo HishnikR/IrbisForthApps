@@ -36,7 +36,8 @@ create im1[] WSIZE CELLS ALLOT
 
 create x1[] WSIZE CELLS ALLOT
 
-int x[] x1[] to x[]
+int x[]
+x1[] to x[]
 
 create signal[] WSIZE PERIODS * CELLS ALLOT
 
@@ -114,9 +115,10 @@ proc fill
   generate()
 endproc
 
-fill
+ fill
 
 0 chart.show
+0 100 500 300 0 chart.rect
 0 0 chart.addseries
 0xffff00 0 series.color
 1 0 chart.addseries
@@ -124,7 +126,7 @@ fill
 2 0 chart.addseries
 
 1 chart.show
-0 500 500 500 1 chart.rect
+0 400 500 400 1 chart.rect
 3 1 chart.addseries
 4 1 chart.addseries
 5 1 chart.addseries
@@ -177,31 +179,33 @@ endproc
 "getphase" 0 trackbar.action
 
 0 button.show
-1000 50 100 30 0 button.rect
+100 50 100 30 0 button.rect
 "f0" 0 button.text
 "setf0" 0 button.action
 
 1 button.show
-1200 50 100 30 1 button.rect
+200 50 100 30 1 button.rect
 "f1" 1 button.text
 "setf1" 1 button.action
 
 run
 
 2 chart.show
-700 500 500 500 2 chart.rect
+550 400 500 500 2 chart.rect
 6 2 chart.addseries
 7 2 chart.addseries
 0xff0000 6 series.color
 0x00ff00 7 series.color
+3 6 series.linewidth
+3 7 series.linewidth
 
 3 chart.show
-700 100 500 300 3 chart.rect
+550 100 500 300 3 chart.rect
 8 3 chart.addseries
 
 proc drawall()
   8 series.clear
-  PERIODS WSIZE * 0 do
+  PERIODS SYMSIZE * 0 do
     i
     signal[] i -th @ 8 series.xy
   loop
@@ -213,12 +217,12 @@ proc test()
   createwav()
   6 series.clear
   7 series.clear
-  PERIODS 1 - WSIZE * 0 DO
+  PERIODS 1 - SYMSIZE * 0 DO
     signal[] i cells + to x[]
     wav()
-    i s>f
+    i WSIZE 2 / + s>f
     wre s>f fdup f* wim s>f fdup f* f+ fsqrt 6 series.fxy
-    i s>f
+    i WSIZE 2 / + s>f
     wre1 s>f fdup f* wim1 s>f fdup f* f+ fsqrt 7 series.fxy
   100 +loop
 endproc
