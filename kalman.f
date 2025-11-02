@@ -1,22 +1,8 @@
 
-int Ysize
-create Y[]
-"456.txt" 0 file.text.open drop
-0 Y[] file.text.fx to Ysize
-Ysize cells allot
-Ysize .
-
-CREATE DY[] Ysize cells allot
 
 100 CONSTANT DATASIZE
 
 CREATE X[] DATASIZE FLOATS ALLOT
-
-int data[]
-x[] to data[]
-INT SIZE
-YSIZE TO SIZE
-
 
 INT WINDOW
 10 TO WINDOW
@@ -37,18 +23,18 @@ PROC P(X) // F:X-- F: P
   X0 F!
   0.0
   WINDOW 0 DO
-    DATA[] TIME I - -TH F@ X0 F@ F-
+    X[] TIME I - -TH F@ X0 F@ F-
     I S>F EPSILON F@ F* SIGMA0 F@ F+ SIGMA F!
-    SIGMA F@ FGAUSS
-    SIGMA F@ F/
-    F+
+    SIGMA F@ FGAUSS F+
   LOOP
 ENDPROC
 
 PROC FILLCONST
-  DATASIZE 0 DO
+  datasize 0 DO
     1.0 X[] I -TH F!
-    I 50 > IF 2.0 X[] I -TH F! THEN
+    i datasize 2 / > if
+      2.0 X[] I -TH F!
+    then
   LOOP
 ENDPROC
 
@@ -74,111 +60,120 @@ PROC FINDX
     THEN FDROP
     X0 F@ XSTEP F@ F+ X0 F!
   LOOP
-
 ENDPROC
+
+float y(i-1)
+float sumdelta^2
+float sumdydt^2
+
+proc bayesfilt
+  0.0 sumdelta^2 f!
+  0.0 sumdydt^2 f!
+  1 series.clear
+  datasize window - window do
+    i to time
+    i s>f
+    FINDX ARGMAX F@
+    1 series.fxy
+    i window > if
+      argmax f@ x[] i -th f@ f- fdup f* sumdelta^2 f@ f+ sumdelta^2 f!
+      argmax f@ y(i-1) f@ f- fdup f* sumdydt^2 f@ f+ sumdydt^2 f!
+      argmax f@ y(i-1) f!
+    then
+  loop
+endproc
+
+0 chart.show
+0 0 2000 700 0 chart.rect
+0 0 chart.addseries
+1 0 chart.addseries
+2 0 chart.addseries
+
+3 0 series.linewidth
+3 1 series.linewidth
+3 2 series.linewidth
+
+0x00ff00 1 series.color
+0xff0000 2 series.color
+
+proc showdata
+  0 series.clear
+  datasize 0 DO
+    i s>f
+    x[] i -th f@
+    0 series.fxy
+  loop
+endproc
+
+proc showaverage
+  0.0 sumdelta^2 f!
+  0.0 sumdydt^2 f!
+  2 series.clear
+  datasize window - window do
+    i to time
+    i window + 1 - s>f
+    0.0
+    i window + i do
+      x[] i -th f@ f+
+    loop
+    window s>f f/
+     fdup argmax f!
+       i window > if
+        argmax f@ x[] i -th f@ f- fdup f* sumdelta^2 f@ f+ sumdelta^2 f!
+        argmax f@ y(i-1) f@ f- fdup f* sumdydt^2 f@ f+ sumdydt^2 f!
+        argmax f@ y(i-1) f!
+      then
+    2 series.fxy
+  loop
+endproc
+
+proc report
+  "sum of delta^2 " print sumdelta^2 f@ f. cr
+  "sum of dy/dt^2 " print sumdydt^2 f@ f. cr
+endproc
+
+showdata
 
 0.0 XMIN F!
-5.0 XMAX F!
-1000 TO STEPS
+10.0 XMAX F!
+500 TO STEPS
 
-0 CHART.SHOW
-0 0 1000 500 0 CHART.RECT
-
-0 0 CHART.ADDSERIES
-3 0 SERIES.LINEWIDTH
-1 0 CHART.ADDSERIES
-3 1 SERIES.LINEWIDTH
-0x00FF00 1 SERIES.COLOR
-2 0 CHART.ADDSERIES
-3 2 SERIES.LINEWIDTH
-0xFF0000 2 SERIES.COLOR
-
-3 0 CHART.ADDSERIES
-5 3 SERIES.LINEWIDTH
-0x00FF 3 SERIES.COLOR
+CR
+showaverage
+"Average filt" print cr
+report
+bayesfilt
+"Bayes filt" print cr
+report
 
 
+1 chart.show
+0 800 2000 700 1 chart.rect
+3 1 chart.addseries
+4 1 chart.addseries
+5 1 chart.addseries
 
-1 CHART.SHOW
-0 500 1000 300 1 CHART.RECT
-20 1 CHART.ADDSERIES
-21 1 CHART.ADDSERIES
-0x00FF 21 SERIES.COLOR
+3 3 series.linewidth
+0x0 3 series.color
+3 4 series.linewidth
+0x0000ff 4 series.color
 
-FLOAT DY2
-FLOAT DY^2
+proc f(epsilon)
+  3 series.clear
+  4 series.clear
+  21 1 do
+    i s>f 0.1 f* epsilon f!
+    bayesfilt
+    sumdelta^2 f@
+    sumdydt^2 f@
+    3 series.fxy
+    sumdelta^2 f@
+    sumdydt^2 f@ sumdelta^2 f@ f+
+    4 series.fxy
+  loop
+  0.0 0.0 5 series.fxy
+endproc
 
-PROC SHOWD/DT
-  20 SERIES.CLEAR
-  0.0 DY2 F!
-  SIZE 1 DO
-    I S>F
-    DATA[] I -TH F@
-    DATA[] I 1 - -TH F@ F-
-    FDUP FDUP F* DY2 F@ F+ DY2 F!
-    20 SERIES.FXY
-  LOOP
-ENDPROC
-
-INT GRAPH
-0 TO GRAPH
-
-FLOAT ARGMAX1
-
-
-PROC AVERAGE
-  GRAPH SERIES.CLEAR
-  SIZE WINDOW DO
-     I TO TIME
-     0.0
-     WINDOW 0 DO
-       X[] TIME I - -TH F@ F+
-     LOOP
-     WINDOW S>F F/
-     I S>F FSWAP GRAPH SERIES.FXY
-  LOOP
-ENDPROC
-
-PROC RUN
-  GRAPH SERIES.CLEAR
-  21 SERIES.CLEAR
-  0.0 DY^2 F!
-  SIZE WINDOW DO
-     I TO TIME
-     FINDX
-     I S>F ARGMAX F@ GRAPH SERIES.FXY
-     I S>F
-     ARGMAX F@ ARGMAX1 F@ F- I WINDOW = IF FDROP 0.0 THEN
-     FDUP
-     FDUP F* DY^2 F@ F+ DY^2 F!
-     21 SERIES.FXY
-     ARGMAX F@ ARGMAX1 F!
-  LOOP
-ENDPROC
-
-
-// ARRAY_FMIN : begin // addr, n -- index_min, f: min
-
-Y[] TO DATA[]
-
-DATA[] SIZE [FMIN] XMIN F! DROP
-DATA[] SIZE [FMAX] XMAX F! DROP
-
-100 TO STEPS
-
-DATA[] SIZE 0 series.plotfx
-
-0.001 EPSILON F!
-1 TO GRAPH
-RUN
-
-0.1 EPSILON F!
-2 TO GRAPH
-RUN
-
-SHOWD/DT
-
-DY2 F@ F.
-DY^2 F@ F.
+f(epsilon)
 
 
