@@ -53,20 +53,31 @@
 
 float fs  1.0e6 fs f!
 
-float f     1.5e3 f f!
+float f     1.0e3 f f!
 float A     2047.0 A f!
 float phi0  0.0 phi0 f!
 
 float w     1.0e3 w f!
 
 10000 constant SIGNALSIZE
-10000 constant WAVSIZE
-int wav0 0 to wav0
+
+int  WAVSIZE
+10000 to WAVSIZE
+
+float f1
+float fstep
+float kw
+
+0.5e3 f1 f!
+5.0e1 fstep f!
+
+int wav0
+0 to wav0
 
 create signal[] SIGNALSIZE cells allot
 
-create WRE[] WAVSIZE cells allot
-create WIM[] WAVSIZE cells allot
+create WRE[] WAVSIZE 20 * cells allot
+create WIM[] WAVSIZE 20 * cells allot
 
 proc signal
   0 series.clear
@@ -82,7 +93,8 @@ endproc
 
 signal
 
-proc wav
+proc gen-sin
+
   WAVSIZE 0 do
     i s>f w f@ fs f@ f/ f* 2.0 f* pi f* fcos
     WRE[] i -th f!
@@ -104,7 +116,26 @@ proc wavdraw
   loop
 endproc
 
-wav wavdraw
+
+proc get-k
+  3.5 6.4582 f* 3.7895 f+
+endproc
+
+get-k kw f!
+
+proc gen-wav
+   // fs f@ w f@ f/ 7.0 f* f>s 1 + to WAVSIZE
+   WAVSIZE 0 do
+      i WAVSIZE 2 / - s>f w f@ fs f@ f/ f* 2.0 f* pi f* fcos
+      i WAVSIZE 2 / - s>f w f@ fs f@ f/ f* 2.0 f* pi f* fdup f* kw f@ f/ -1.0 f* fexp f*
+      WRE[] i -th f!
+      i WAVSIZE 2 / - s>f w f@ fs f@ f/ f* 2.0 f* pi f* fsin
+      i WAVSIZE 2 / - s>f w f@ fs f@ f/ f* 2.0 f* pi f* fdup f* kw f@ f/ -1.0 f* fexp f*
+      WIM[] i -th f!
+   loop
+endproc
+
+gen-sin wavdraw
 
 float sre
 float sim
@@ -137,19 +168,16 @@ endproc
 
 100 constant SPECTRS
 
-float f1
-float fstep
 
-0.5e3 f1 f!
-5.0e1 fstep f!
 
 
 proc spectr
   3 series.clear
   4 series.clear
-  f1 f@ w f!
+  0.5e3 w f!
+  0.01e3 fstep f!
   SPECTRS 0 do
-  wav
+  gen-sin
     0.0 sre f!
     0.0 sim f!
     WAVSIZE 0 do
@@ -168,5 +196,29 @@ proc spectr
 endproc
 
 
-spectr
+proc wspectr
+  3 series.clear
+  4 series.clear
+  0.5e3 w f!
+  0.01e3 fstep f!
+  SPECTRS 0 do
+  gen-wav
+    0.0 sre f!
+    0.0 sim f!
+    WAVSIZE 0 do
+      signal[] i -th @ s>f
+      WRE[] i -th f@ f*
+      sre f@ f+ sre f!
+
+      signal[] i -th @ s>f
+      WIM[] i -th f@ f*
+      sim f@ f+ sim f!
+    loop
+    w f@
+    sre f@ fdup f* sim f@ fdup f* f+ fsqrt w f@ f* 3 series.fxy
+    w f@ fstep f@ f+ w f!
+  loop
+endproc
+
+
 
